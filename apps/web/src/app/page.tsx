@@ -87,6 +87,12 @@ export default function Home() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResearchResult | null>(null);
+  const resultsRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!result) return;
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [result]);
 
   async function startResearch() {
     const trimmed = question.trim();
@@ -111,6 +117,26 @@ export default function Home() {
           : `Research request failed (${response.status}). Please try again.`;
         throw new Error(detail);
       }
+
+      if (
+        typeof payload !== "object" ||
+        payload === null ||
+        !("question" in payload) ||
+        typeof payload.question !== "string" ||
+        !("sources" in payload) ||
+        !Array.isArray(payload.sources) ||
+        !("source_count" in payload) ||
+        typeof payload.source_count !== "number" ||
+        !("synthesis_status" in payload) ||
+        typeof payload.synthesis_status !== "string" ||
+        !("report_markdown" in payload) ||
+        !(typeof payload.report_markdown === "string" || payload.report_markdown === null) ||
+        !("message" in payload) ||
+        typeof payload.message !== "string"
+      ) {
+        throw new Error("The research service responded, but its result was incomplete or in an unexpected format. Please try again. If this continues, check the API deployment logs.");
+      }
+
       setResult(payload as ResearchResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to reach the API. Check that the backend is running.");
@@ -263,11 +289,29 @@ export default function Home() {
             </p>
             <span className="character-note">{question.length}/2000</span>
           </div>
+          {loading && (
+            <div className="research-progress" role="status" aria-live="polite" aria-busy="true">
+              <div className="research-progress-head">
+                <span className="research-progress-spinner" aria-hidden="true" />
+                <div>
+                  <p className="research-progress-kicker">RESEARCH IN PROGRESS</p>
+                  <h3>Your research is underway</h3>
+                  <p className="research-progress-copy">Keep this page open. Your sources and report will appear here as soon as the research service responds.</p>
+                </div>
+              </div>
+              <div className="research-progress-steps" aria-label="Typical research workflow">
+                <div className="research-progress-step"><span>01</span><div><strong>Discover sources</strong><small>Find relevant material across the web</small></div><span className="research-step-symbol">↗</span></div>
+                <div className="research-progress-step"><span>02</span><div><strong>Analyze evidence</strong><small>Review source details and key findings</small></div><span className="research-step-symbol">⌕</span></div>
+                <div className="research-progress-step"><span>03</span><div><strong>Prepare your report</strong><small>Organize the findings and source links</small></div><span className="research-step-symbol">▤</span></div>
+              </div>
+              <p className="research-progress-note">These are the usual workflow stages, not live step-by-step updates. The current research service does not yet stream individual stage events.</p>
+            </div>
+          )}
           {error && <p className="error" role="alert">{error}</p>}
         </section>
 
         {result && (
-          <section id="research-results" className="results" aria-live="polite" aria-labelledby="results-title">
+          <section id="research-results" ref={resultsRef} className="results" aria-live="polite" aria-labelledby="results-title">
             <div className="results-heading">
               <div>
                 <span className="eyebrow">Research results</span>
