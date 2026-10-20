@@ -43,31 +43,47 @@ const examples = [
   },
 ];
 
-function renderInlineCitations(text: string, sourceCount: number) {
-  return text.split(/(\[\d+(?:\s*,\s*\d+)*\])/g).map((part, partIndex) => {
-    const match = part.match(/^\[(\d+(?:\s*,\s*\d+)*)\]$/);
-    if (!match) return part;
+function renderInlineFormatting(text: string, sourceCount: number) {
+  const tokenPattern = /(\[\d+(?:\s*,\s*\d+)*\]|\*\*[^*]+\*\*|__[^_]+__|\*[^*\n]+\*|_[^_\n]+_|\x60[^\x60]+\x60)/g;
 
-    const ids = match[1].split(",").map((value) => Number(value.trim()));
-    if (ids.some((id) => id < 1 || id > sourceCount)) return part;
+  return text.split(tokenPattern).map((part, partIndex) => {
+    const citationMatch = part.match(/^\[(\d+(?:\s*,\s*\d+)*)\]$/);
+    if (citationMatch) {
+      const ids = citationMatch[1].split(",").map((value) => Number(value.trim()));
+      if (ids.some((id) => id < 1 || id > sourceCount)) return part;
 
-    return (
-      <span className="citation-group" key={partIndex}>
-        {ids.map((id, index) => (
-          <span key={`${id}-${index}`}>
-            {index > 0 ? ", " : ""}
-            <a
-              className="inline-citation"
-              href={`#source-${id}`}
-              aria-label={`Jump to source ${id}`}
-              title={`Jump to source ${id}`}
-            >
-              [{id}]
-            </a>
-          </span>
-        ))}
-      </span>
-    );
+      return (
+        <span className="citation-group" key={partIndex}>
+          {ids.map((id, index) => (
+            <span key={`${id}-${index}`}>
+              {index > 0 ? ", " : ""}
+              <a
+                className="inline-citation"
+                href={`#source-${id}`}
+                aria-label={`Jump to source ${id}`}
+                title={`Jump to source ${id}`}
+              >
+                [{id}]
+              </a>
+            </span>
+          ))}
+        </span>
+      );
+    }
+
+    if ((part.startsWith("**") && part.endsWith("**")) ||
+        (part.startsWith("__") && part.endsWith("__"))) {
+      return <strong key={partIndex}>{part.slice(2, -2)}</strong>;
+    }
+    if ((part.startsWith("*") && part.endsWith("*")) ||
+        (part.startsWith("_") && part.endsWith("_"))) {
+      return <em key={partIndex}>{part.slice(1, -1)}</em>;
+    }
+    if (part.startsWith("`") && part.endsWith("`")) {
+      return <code key={partIndex}>{part.slice(1, -1)}</code>;
+    }
+
+    return part;
   });
 }
 
@@ -80,9 +96,9 @@ function ReportContent({ markdown, sourceCount }: { markdown: string; sourceCoun
         if (trimmed.startsWith("### ")) return <h4 key={index}>{trimmed.slice(4)}</h4>;
         if (trimmed.startsWith("## ")) return <h3 key={index}>{trimmed.slice(3)}</h3>;
         if (trimmed.startsWith("# ")) return <h2 key={index}>{trimmed.slice(2)}</h2>;
-        if (/^[-*] /.test(trimmed)) return <p className="report-list-item" key={index}>• {renderInlineCitations(trimmed.slice(2), sourceCount)}</p>;
-        if (/^\d+\. /.test(trimmed)) return <p className="report-list-item" key={index}>{renderInlineCitations(trimmed, sourceCount)}</p>;
-        return <p key={index}>{renderInlineCitations(trimmed, sourceCount)}</p>;
+        if (/^[-*] /.test(trimmed)) return <p className="report-list-item" key={index}>• {renderInlineFormatting(trimmed.slice(2), sourceCount)}</p>;
+        if (/^\d+\. /.test(trimmed)) return <p className="report-list-item" key={index}>{renderInlineFormatting(trimmed, sourceCount)}</p>;
+        return <p key={index}>{renderInlineFormatting(trimmed, sourceCount)}</p>;
       })}
     </div>
   );
