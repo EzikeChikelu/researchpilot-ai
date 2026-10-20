@@ -17,9 +17,15 @@ export async function POST(request: Request) {
   }
 
   try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    // This server-only token protects the backend when it is hosted separately.
+    if (process.env.API_PROXY_TOKEN) {
+      headers["X-API-Proxy-Token"] = process.env.API_PROXY_TOKEN;
+    }
+
     const upstream = await fetch(`${apiBase}/api/v1/research`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(body),
       cache: "no-store",
       signal: AbortSignal.timeout(90_000),
