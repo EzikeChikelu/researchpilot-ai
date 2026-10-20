@@ -44,8 +44,8 @@ const examples = [
 ];
 
 function renderInlineCitations(text: string, sourceCount: number) {
-  return text.split(/(\\[\\d+(?:\\s*,\\s*\\d+)*\\])/g).map((part, partIndex) => {
-    const match = part.match(/^\\[(\\d+(?:\\s*,\\s*\\d+)*)\\]$/);
+  return text.split(/(\[\d+(?:\s*,\s*\d+)*\])/g).map((part, partIndex) => {
+    const match = part.match(/^\[(\d+(?:\s*,\s*\d+)*)\]$/);
     if (!match) return part;
 
     const ids = match[1].split(",").map((value) => Number(value.trim()));
@@ -74,14 +74,14 @@ function renderInlineCitations(text: string, sourceCount: number) {
 function ReportContent({ markdown, sourceCount }: { markdown: string; sourceCount: number }) {
   return (
     <div className="report-content">
-      {markdown.split("\\n").map((line, index) => {
+      {markdown.split("\n").map((line, index) => {
         const trimmed = line.trim();
         if (!trimmed) return <div className="report-space" key={index} />;
         if (trimmed.startsWith("### ")) return <h4 key={index}>{trimmed.slice(4)}</h4>;
         if (trimmed.startsWith("## ")) return <h3 key={index}>{trimmed.slice(3)}</h3>;
         if (trimmed.startsWith("# ")) return <h2 key={index}>{trimmed.slice(2)}</h2>;
         if (/^[-*] /.test(trimmed)) return <p className="report-list-item" key={index}>• {renderInlineCitations(trimmed.slice(2), sourceCount)}</p>;
-        if (/^\\d+\\. /.test(trimmed)) return <p className="report-list-item" key={index}>{renderInlineCitations(trimmed, sourceCount)}</p>;
+        if (/^\d+\. /.test(trimmed)) return <p className="report-list-item" key={index}>{renderInlineCitations(trimmed, sourceCount)}</p>;
         return <p key={index}>{renderInlineCitations(trimmed, sourceCount)}</p>;
       })}
     </div>
