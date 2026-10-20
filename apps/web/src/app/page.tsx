@@ -1,7 +1,7 @@
 
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type ResearchSource = {
   title: string;
@@ -61,7 +61,20 @@ function ReportContent({ markdown }: { markdown: string }) {
 }
 
 export default function Home() {
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [question, setQuestion] = useState("");
+
+  useEffect(() => {
+    const savedTheme = window.localStorage.getItem("researchpilot-theme");
+    if (savedTheme === "light" || savedTheme === "dark") {
+      setTheme(savedTheme);
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem("researchpilot-theme", theme);
+  }, [theme]);
   const [depth, setDepth] = useState("standard");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -125,7 +138,20 @@ export default function Home() {
           <span className="brand-mark">R</span>
           <span>ResearchPilot <span className="gradient-text">AI</span></span>
         </Link>
-        <span className="topbar-note">Research grounded in sources, not guesses.</span>
+        <div className="topbar-actions">
+          <span className="topbar-note">Research grounded in sources, not guesses.</span>
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            aria-pressed={theme === "light"}
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            <span aria-hidden="true">{theme === "dark" ? "☼" : "☾"}</span>
+            <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+          </button>
+        </div>
       </header>
 
       <main>
