@@ -16,7 +16,8 @@ type ResearchResult = {
   depth: string;
   source_count: number;
   sources: ResearchSource[];
-  synthesis_status: string;
+  synthesis_status: "completed" | "not_configured" | "failed" | string;
+  report_markdown: string | null;
   message: string;
 };
 
@@ -40,6 +41,23 @@ const examples = [
     prompt: "Summarize recent evidence on how urban tree cover affects heat in cities. Distinguish well-supported findings from open questions.",
   },
 ];
+
+function ReportContent({ markdown }: { markdown: string }) {
+  return (
+    <div className="report-content">
+      {markdown.split("\n").map((line, index) => {
+        const trimmed = line.trim();
+        if (!trimmed) return <div className="report-space" key={index} />;
+        if (trimmed.startsWith("### ")) return <h4 key={index}>{trimmed.slice(4)}</h4>;
+        if (trimmed.startsWith("## ")) return <h3 key={index}>{trimmed.slice(3)}</h3>;
+        if (trimmed.startsWith("# ")) return <h2 key={index}>{trimmed.slice(2)}</h2>;
+        if (/^[-*] /.test(trimmed)) return <p className="report-list-item" key={index}>• {trimmed.slice(2)}</p>;
+        if (/^\d+\. /.test(trimmed)) return <p className="report-list-item" key={index}>{trimmed}</p>;
+        return <p key={index}>{trimmed}</p>;
+      })}
+    </div>
+  );
+}
 
 export default function Home() {
   const [question, setQuestion] = useState("");
@@ -77,6 +95,26 @@ export default function Home() {
       setError(err instanceof Error ? err.message : "Unable to reach the API. Check that the backend is running.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  function downloadReport() {
+    if (!result?.report_markdown) return;
+    const file = new Blob([result.report_markdown], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(file);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "researchpilot-report.md";
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function copyReport() {
+    if (!result?.report_markdown) return;
+    try {
+      await navigator.clipboard.writeText(result.report_markdown);
+    } catch {
+      setError("Clipboard access was blocked. Use Download Markdown instead.");
     }
   }
 
@@ -123,11 +161,11 @@ export default function Home() {
               </select>
             </label>
             <button className="primary-button" onClick={startResearch} disabled={loading}>
-              {loading ? "Searching sources…" : "Start researching"} <span aria-hidden="true">↗</span>
+              {loading ? "Researching and writing…" : "Start researching"} <span aria-hidden="true">↗</span>
             </button>
           </div>
           <p id="question-help" className="status-note">
-            Collect source links first. AI synthesis will be added in a later milestone.
+            ResearchPilot gathers web sources and writes a cited report when an AI provider is configured.
           </p>
           {error && <p className="error" role="alert">{error}</p>}
         </section>
@@ -137,18 +175,49 @@ export default function Home() {
             <div className="results-heading">
               <div>
                 <span className="eyebrow">Research results</span>
-                <h2 id="results-title">Sources for your question</h2>
+                <h2 id="results-title">Your research brief</h2>
                 <p>{result.question}</p>
               </div>
               <span className="source-count">{result.source_count} sources</span>
             </div>
-            <p className="results-notice">{result.message}</p>
+
+            {result.report_markdown ? (
+              <article className="report-card">
+                <div className="report-toolbar">
+                  <div>
+                    <span className="report-kicker">AI-generated synthesis</span>
+                    <p>Claims use numbered citations linked to the source list below.</p>
+                  </div>
+                  <div className="report-actions">
+                    <button type="button" className="secondary-button" onClick={copyReport}>Copy report</button>
+                    <button type="button" className="secondary-button" onClick={downloadReport}>Download .md</button>
+                  </div>
+                </div>
+                <ReportContent markdown={result.report_markdown} />
+              </article>
+            ) : (
+              <div className="results-notice">
+                <strong>{result.synthesis_status === "not_configured" ? "AI synthesis needs setup" : "Report synthesis unavailable"}</strong>
+                <p>{result.message}</p>
+                {result.synthesis_status === "not_configured" && (
+                  <p>Add a compatible model API key as <code>LLM_API_KEY</code> in <code>apps/api/.env</code>, then restart the backend. Your source results are still available below.</p>
+                )}
+              </div>
+            )}
+
+            <div className="sources-heading">
+              <div>
+                <span className="eyebrow">Evidence library</span>
+                <h3>Sources used for this research</h3>
+              </div>
+              <span>{result.source_count} collected</span>
+            </div>
             {result.sources.length > 0 ? (
               <div className="source-list">
-                {result.sources.map((source) => (
+                {result.sources.map((source, index) => (
                   <article className="source-card" key={source.url}>
                     <div className="source-meta">
-                      <span>Source</span>
+                      <span>Source [{index + 1}]</span>
                       {source.published_date && <span>{source.published_date}</span>}
                     </div>
                     <h3><a href={source.url} target="_blank" rel="noreferrer">{source.title} <span aria-hidden="true">↗</span></a></h3>
@@ -185,7 +254,7 @@ export default function Home() {
         </section>
 
         <footer className="footer">
-          <span>ResearchPilot AI · Early development</span>
+          <span>ResearchPilot AI · AI synthesis milestone</span>
           <span>Evidence first. Clear reasoning. Traceable sources.</span>
         </footer>
       </main>
