@@ -43,18 +43,46 @@ const examples = [
   },
 ];
 
-function ReportContent({ markdown }: { markdown: string }) {
+function renderInlineCitations(text: string, sourceCount: number) {
+  return text.split(/(\\[\\d+(?:\\s*,\\s*\\d+)*\\])/g).map((part, partIndex) => {
+    const match = part.match(/^\\[(\\d+(?:\\s*,\\s*\\d+)*)\\]$/);
+    if (!match) return part;
+
+    const ids = match[1].split(",").map((value) => Number(value.trim()));
+    if (ids.some((id) => id < 1 || id > sourceCount)) return part;
+
+    return (
+      <span className="citation-group" key={partIndex}>
+        {ids.map((id, index) => (
+          <span key={`${id}-${index}`}>
+            {index > 0 ? ", " : ""}
+            <a
+              className="inline-citation"
+              href={`#source-${id}`}
+              aria-label={`Jump to source ${id}`}
+              title={`Jump to source ${id}`}
+            >
+              [{id}]
+            </a>
+          </span>
+        ))}
+      </span>
+    );
+  });
+}
+
+function ReportContent({ markdown, sourceCount }: { markdown: string; sourceCount: number }) {
   return (
     <div className="report-content">
-      {markdown.split("\n").map((line, index) => {
+      {markdown.split("\\n").map((line, index) => {
         const trimmed = line.trim();
         if (!trimmed) return <div className="report-space" key={index} />;
         if (trimmed.startsWith("### ")) return <h4 key={index}>{trimmed.slice(4)}</h4>;
         if (trimmed.startsWith("## ")) return <h3 key={index}>{trimmed.slice(3)}</h3>;
         if (trimmed.startsWith("# ")) return <h2 key={index}>{trimmed.slice(2)}</h2>;
-        if (/^[-*] /.test(trimmed)) return <p className="report-list-item" key={index}>• {trimmed.slice(2)}</p>;
-        if (/^\d+\. /.test(trimmed)) return <p className="report-list-item" key={index}>{trimmed}</p>;
-        return <p key={index}>{trimmed}</p>;
+        if (/^[-*] /.test(trimmed)) return <p className="report-list-item" key={index}>• {renderInlineCitations(trimmed.slice(2), sourceCount)}</p>;
+        if (/^\\d+\\. /.test(trimmed)) return <p className="report-list-item" key={index}>{renderInlineCitations(trimmed, sourceCount)}</p>;
+        return <p key={index}>{renderInlineCitations(trimmed, sourceCount)}</p>;
       })}
     </div>
   );
@@ -333,7 +361,7 @@ export default function Home() {
                     <button type="button" className="secondary-button" onClick={downloadReport}>Download .md</button>
                   </div>
                 </div>
-                <ReportContent markdown={result.report_markdown} />
+                <ReportContent markdown={result.report_markdown} sourceCount={result.sources.length} />
               </article>
             ) : (
               <div className="results-notice">
@@ -355,7 +383,7 @@ export default function Home() {
             {result.sources.length > 0 ? (
               <div className="source-list">
                 {result.sources.map((source, index) => (
-                  <article className="source-card" key={source.url}>
+                  <article id={`source-${index + 1}`} className="source-card" key={source.url}>
                     <div className="source-meta">
                       <span>Source [{index + 1}]</span>
                       {source.published_date && <span>{source.published_date}</span>}
