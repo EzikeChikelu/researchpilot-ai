@@ -4,13 +4,13 @@ ResearchPilot AI is a source-grounded research assistant that collects relevant 
 
 ## Current status
 
-**Milestone 3 — source-grounded AI synthesis.** The FastAPI backend searches the web with Tavily, deduplicates source URLs, and optionally asks an OpenAI-compatible chat-completions API to synthesize the collected titles and excerpts. The Next.js interface displays the report and source list and supports copying or downloading the Markdown report.
+**Milestone 3 — source-grounded AI synthesis.** The FastAPI backend searches the web with Tavily, deduplicates source URLs, and optionally asks an OpenAI-compatible chat-completions API to synthesize the collected titles and excerpts. The Next.js interface displays the report and source list and supports copying or downloading the Markdown report. A same-origin Next.js route proxies browser requests to FastAPI, so the backend does not need to be publicly exposed for the normal web UI.
 
 AI synthesis is optional: without an LLM key, the app still returns search results and clearly explains how to configure report generation. The model receives source titles, URLs, dates, and search excerpts—not the full source pages. Citation markers refer to the numbered collected source list and should be verified by opening the links.
 
 ## Architecture
 
-- `apps/web`: Next.js + TypeScript frontend
+- `apps/web`: Next.js + TypeScript frontend with a same-origin server-side API proxy
 - `apps/api`: Python + FastAPI backend
 - `apps/api/app/search.py`: Tavily search integration and URL deduplication
 - `apps/api/app/synthesis.py`: OpenAI-compatible chat-completions integration for report synthesis
@@ -76,7 +76,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Set `NEXT_PUBLIC_API_URL=http://localhost:8000` in `apps/web/.env.local` for local development. For forwarded environments, use the backend's reachable URL. Never put private API keys in variables prefixed with `NEXT_PUBLIC_`.
+Set `API_URL=http://127.0.0.1:8000` in `apps/web/.env.local` for Codespaces/local development. The Next.js server-side route at `/api/research` forwards requests to FastAPI, so the browser does not need direct access to port 8000 and CORS is not required for the normal UI flow. Keep the backend port Private when using this proxy. In production, configure `API_URL` to the backend's private/internal address. Never put private API keys in variables prefixed with `NEXT_PUBLIC_`.
 
 ## Research API
 
