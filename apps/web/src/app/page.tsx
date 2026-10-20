@@ -1,7 +1,7 @@
 
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ResearchSource = {
   title: string;
@@ -63,6 +63,14 @@ function ReportContent({ markdown }: { markdown: string }) {
 export default function Home() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [question, setQuestion] = useState("");
+  const questionInputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const textarea = questionInputRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [question]);
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("researchpilot-theme");
@@ -133,13 +141,34 @@ export default function Home() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <Link className="brand" href="/" aria-label="ResearchPilot AI home">
+      <aside className="app-sidebar" aria-label="Main navigation">
+        <Link className="brand sidebar-brand" href="/" aria-label="ResearchPilot AI home">
           <span className="brand-mark">R</span>
-          <span>ResearchPilot <span className="gradient-text">AI</span></span>
+          <span className="sidebar-brand-copy">ResearchPilot <span className="gradient-text">AI</span></span>
         </Link>
+        <div className="sidebar-caption">WORKSPACE</div>
+        <nav className="sidebar-nav">
+          <a className="sidebar-link is-active" href="#research-label"><span className="nav-icon">⌘</span><span>Research studio</span><span className="nav-active-dot" /></a>
+          <a className="sidebar-link" href="#examples-title"><span className="nav-icon">✳</span><span>Explore prompts</span><span className="nav-shortcut">↗</span></a>
+          <a className="sidebar-link" href="#research-results"><span className="nav-icon">▤</span><span>Latest report</span></a>
+        </nav>
+        <div className="sidebar-divider" />
+        <div className="sidebar-caption">YOUR RESEARCH</div>
+        <div className="sidebar-empty">
+          <span className="sidebar-empty-icon">◌</span>
+          <p>Your research library</p>
+          <span>Reports from this session will appear here.</span>
+        </div>
+        <div className="sidebar-bottom">
+          <div className="sidebar-status"><span className="status-dot" /><span><strong>Research engine</strong><small>Ready for a question</small></span></div>
+          <div className="sidebar-version"><span>RESEARCHPILOT</span><span>STUDIO · 01</span></div>
+        </div>
+      </aside>
+      <div className="app-main">
+      <header className="topbar">
+        <div className="topbar-context"><span className="topbar-context-mark">⌘</span><span><small>WORKSPACE / RESEARCH</small><strong>Research studio</strong></span></div>
         <div className="topbar-actions">
-          <span className="topbar-note">Research grounded in sources, not guesses.</span>
+          <span className="topbar-note"><span className="topbar-live-dot" /> Evidence-first AI research</span>
           <button
             type="button"
             className="theme-toggle"
@@ -162,42 +191,83 @@ export default function Home() {
             Turn a question into a structured research report. Explore evidence,
             trace claims to sources, and spend less time searching and more time understanding.
           </p>
+          <div className="hero-proof" aria-label="ResearchPilot capabilities">
+            <span><i aria-hidden="true">✳</i> Web-grounded research</span>
+            <span><i aria-hidden="true">↗</i> Traceable sources</span>
+            <span><i aria-hidden="true">◷</i> Reports in minutes</span>
+          </div>
         </section>
 
         <section className="workspace" aria-labelledby="research-label">
           <div className="workspace-label">
-            <label id="research-label" htmlFor="research-question">What do you want to research?</label>
-            <span className="pill">AI research agent</span>
+            <div className="workspace-prompt-heading">
+              <span className="workspace-step">01 <span> / ASK</span></span>
+              <label id="research-label" htmlFor="research-question">What do you want to research?</label>
+            </div>
+            <span className="pill"><span className="status-dot" aria-hidden="true" /> AI research agent</span>
           </div>
-          <textarea
-            id="research-question"
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            maxLength={2000}
-            placeholder="Example: What are the biggest opportunities and risks for AI adoption in African fintech?"
-            aria-describedby="question-help"
-          />
-          <div className="controls">
-            <label className="select-wrap">
-              Research depth
-              <select value={depth} onChange={(event) => setDepth(event.target.value)}>
-                <option value="quick">Quick scan</option>
-                <option value="standard">Standard research</option>
-                <option value="deep">Deep research</option>
-              </select>
-            </label>
+          <div className="prompt-editor">
+            <div className="prompt-editor-bar" aria-hidden="true">
+              <span className="prompt-editor-label"><span className="prompt-editor-glyph">✳</span> YOUR RESEARCH QUESTION</span>
+              <span className="prompt-editor-mode">NATURAL LANGUAGE <span>·</span> OPEN INPUT</span>
+            </div>
+            <textarea
+              ref={questionInputRef}
+              id="research-question"
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              maxLength={2000}
+              placeholder={"Ask anything worth understanding…\n\nBe specific about the topic, timeframe, region, or evidence you want to compare."}
+              aria-describedby="question-help"
+            />
+            <div className="prompt-editor-bottom" aria-hidden="true">
+              <span><span className="prompt-editor-bottom-dot" /> Ready for your question</span>
+              <span>SHIFT YOUR THINKING. START HERE <span className="prompt-editor-spark">✧</span></span>
+            </div>
+          </div>
+          <fieldset className="depth-picker" aria-label="Choose research depth">
+            <div className="depth-picker-heading">
+              <legend>Research depth</legend>
+              <span>Choose how far to investigate</span>
+            </div>
+            <div className="depth-options">
+              <button type="button" className={`depth-option ${depth === "quick" ? "is-selected" : ""}`} aria-pressed={depth === "quick"} onClick={() => setDepth("quick")}>
+                <span className="depth-option-top"><span className="depth-symbol" aria-hidden="true">⌁</span><span className="depth-check" aria-hidden="true">✓</span></span>
+                <span className="depth-option-name">Quick scan</span>
+                <span className="depth-option-detail">A focused overview</span>
+                <span className="depth-option-time">FASTEST</span>
+              </button>
+              <button type="button" className={`depth-option ${depth === "standard" ? "is-selected" : ""}`} aria-pressed={depth === "standard"} onClick={() => setDepth("standard")}>
+                <span className="depth-option-top"><span className="depth-symbol" aria-hidden="true">◈</span><span className="depth-check" aria-hidden="true">✓</span></span>
+                <span className="depth-option-name">Standard</span>
+                <span className="depth-option-detail">Balanced source coverage</span>
+                <span className="depth-option-time">RECOMMENDED</span>
+              </button>
+              <button type="button" className={`depth-option ${depth === "deep" ? "is-selected" : ""}`} aria-pressed={depth === "deep"} onClick={() => setDepth("deep")}>
+                <span className="depth-option-top"><span className="depth-symbol" aria-hidden="true">◎</span><span className="depth-check" aria-hidden="true">✓</span></span>
+                <span className="depth-option-name">Deep research</span>
+                <span className="depth-option-detail">More comprehensive exploration</span>
+                <span className="depth-option-time">MOST THOROUGH</span>
+              </button>
+            </div>
+          </fieldset>
+          <div className="controls controls-after-depth">
+            <span className="depth-selected-note"><span className="status-dot" aria-hidden="true" /> {depth === "quick" ? "Quick scan selected" : depth === "deep" ? "Deep research selected" : "Standard research selected"}</span>
             <button className="primary-button" onClick={startResearch} disabled={loading}>
               {loading ? "Researching and writing…" : "Start researching"} <span aria-hidden="true">↗</span>
             </button>
           </div>
-          <p id="question-help" className="status-note">
-            ResearchPilot gathers web sources and writes a cited report when an AI provider is configured.
-          </p>
+          <div className="workspace-foot">
+            <p id="question-help" className="status-note">
+              <span aria-hidden="true">⌁</span> Research grounded in web sources, with a cited report when an AI provider is configured.
+            </p>
+            <span className="character-note">{question.length}/2000</span>
+          </div>
           {error && <p className="error" role="alert">{error}</p>}
         </section>
 
         {result && (
-          <section className="results" aria-live="polite" aria-labelledby="results-title">
+          <section id="research-results" className="results" aria-live="polite" aria-labelledby="results-title">
             <div className="results-heading">
               <div>
                 <span className="eyebrow">Research results</span>
@@ -260,8 +330,11 @@ export default function Home() {
 
         <section aria-labelledby="examples-title">
           <div className="section-heading">
-            <h2 id="examples-title">Start with an idea</h2>
-            <span>Choose a prompt to explore</span>
+            <div>
+              <span className="section-overline">A starting point</span>
+              <h2 id="examples-title">Good questions lead somewhere.</h2>
+            </div>
+            <span>Choose a prompt to explore <span aria-hidden="true">↘</span></span>
           </div>
           <div className="example-grid">
             {examples.map((example) => (
@@ -284,6 +357,7 @@ export default function Home() {
           <span>Evidence first. Clear reasoning. Traceable sources.</span>
         </footer>
       </main>
+      </div>
     </div>
   );
 }
