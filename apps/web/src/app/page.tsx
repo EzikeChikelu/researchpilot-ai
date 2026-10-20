@@ -198,14 +198,24 @@ export default function Home() {
             </div>
             <span className="pill"><span className="status-dot" aria-hidden="true" /> AI research agent</span>
           </div>
-          <textarea
-            id="research-question"
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            maxLength={2000}
-            placeholder="Example: What are the biggest opportunities and risks for AI adoption in African fintech?"
-            aria-describedby="question-help"
-          />
+          <div className="prompt-editor">
+            <div className="prompt-editor-bar" aria-hidden="true">
+              <span className="prompt-editor-label"><span className="prompt-editor-glyph">✳</span> YOUR RESEARCH QUESTION</span>
+              <span className="prompt-editor-mode">NATURAL LANGUAGE <span>·</span> OPEN INPUT</span>
+            </div>
+            <textarea
+              id="research-question"
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              maxLength={2000}
+              placeholder={"Ask anything worth understanding…\n\nBe specific about the topic, timeframe, region, or evidence you want to compare."}
+              aria-describedby="question-help"
+            />
+            <div className="prompt-editor-bottom" aria-hidden="true">
+              <span><span className="prompt-editor-bottom-dot" /> Ready for your question</span>
+              <span>SHIFT YOUR THINKING. START HERE <span className="prompt-editor-spark">✧</span></span>
+            </div>
+          </div>
           <fieldset className="depth-picker" aria-label="Choose research depth">
             <div className="depth-picker-heading">
               <legend>Research depth</legend>
