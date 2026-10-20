@@ -4,16 +4,18 @@ ResearchPilot AI is a source-grounded research assistant that collects relevant 
 
 ## Current status
 
-**Milestone 3 — source-grounded AI synthesis.** The FastAPI backend searches the web with Tavily, deduplicates source URLs, and optionally asks an OpenAI-compatible chat-completions API to synthesize the collected titles and excerpts. The Next.js interface displays the report and source list and supports copying or downloading the Markdown report. A same-origin Next.js route proxies browser requests to FastAPI, so the backend does not need to be publicly exposed for the normal web UI.
+The FastAPI backend searches the web with Tavily, deduplicates source URLs, and optionally uses an OpenAI-compatible chat-completions API to synthesize the collected titles and excerpts. The Next.js interface displays the report and source list and supports copying or downloading the Markdown report. A same-origin Next.js route proxies browser requests to FastAPI, so the backend does not need to be publicly exposed for the normal web UI.
 
 AI synthesis is optional: without an LLM key, the app still returns search results and clearly explains how to configure report generation. The model receives source titles, URLs, dates, and search excerpts—not the full source pages. Citation markers refer to the numbered collected source list and should be verified by opening the links.
+
+The AI client retries temporary network failures and common transient provider responses (including HTTP 429 and 503) up to three attempts with bounded backoff. This improves resilience but does not bypass provider rate limits or guarantee availability.
 
 ## Architecture
 
 - `apps/web`: Next.js + TypeScript frontend with a same-origin server-side API proxy
 - `apps/api`: Python + FastAPI backend
 - `apps/api/app/search.py`: Tavily search integration and URL deduplication
-- `apps/api/app/synthesis.py`: OpenAI-compatible chat-completions integration for report synthesis
+- `apps/api/app/synthesis.py`: OpenAI-compatible chat-completions integration with bounded transient-error retries
 - `apps/api/tests`: API behavior tests
 
 ## Prerequisites
@@ -38,17 +40,18 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create `apps/api/.env` and add your private keys:
+Create `apps/api/.env` and add your private keys. For Gemini, use a key from [Google AI Studio](https://aistudio.google.com/app/apikey):
 
 ```dotenv
 TAVILY_API_KEY=your_tavily_api_key
-LLM_API_KEY=your_model_provider_api_key
-# Optional; defaults shown:
-LLM_MODEL=gpt-4o-mini
-LLM_BASE_URL=https://api.openai.com/v1
+LLM_API_KEY=your_gemini_api_key
+LLM_MODEL=gemini-3.5-flash-lite
+LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
 ```
 
-Get a search key from [Tavily](https://tavily.com/). For AI synthesis, use an API key from a provider compatible with the OpenAI chat-completions format. Provider usage may incur charges. Keep keys private and never commit your real `.env` file.
+The example Gemini model is configurable; available models, quotas, and free-tier terms can vary by account and may change. See Google's [OpenAI compatibility documentation](https://ai.google.dev/gemini-api/docs/openai) and [pricing](https://ai.google.dev/gemini-api/docs/pricing) before choosing a production model. Other providers that support the OpenAI chat-completions format can be configured with `LLM_MODEL` and `LLM_BASE_URL`.
+
+Keep keys private and never commit your real `.env` file. Provider usage limits apply, and free-tier terms may differ from paid-tier terms.
 
 Start the API:
 
@@ -61,7 +64,7 @@ Check [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health)
 Run API tests:
 
 ```bash
-pytest
+pytest -q
 ```
 
 ### Web
@@ -91,9 +94,16 @@ Send a request to `POST /api/v1/research`:
 
 Supported depths: `quick`, `standard`, and `deep`. The response includes source metadata, `synthesis_status`, and `report_markdown` when synthesis succeeds. Missing search configuration returns HTTP 503; search-provider failures return HTTP 502. If AI synthesis is not configured or its provider fails, the API still returns collected sources with an explicit status rather than losing the research results.
 
-## Environment variables
+## Production checklist
 
-See `.env.example`. Keep secrets server-side and do not commit local `.env` files.
+Before inviting public users:
+
+1. Configure `TAVILY_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, and `LLM_BASE_URL` as server-side secrets in the hosting platform.
+2. Set `API_URL` to the backend's private/internal address and keep the backend port private when using the Next.js proxy.
+3. Run API tests, web type-checking, and a production build.
+4. Add rate limiting and request quotas at the edge or API gateway before exposing the research endpoint publicly; this repository does not currently implement per-user authentication or quotas.
+5. Review provider terms, retention, privacy, and cost limits. Never promise unlimited free use.
+6. Verify citations by opening the source URLs. The current synthesis uses search excerpts rather than full-page extraction, so important claims need independent verification.
 
 ## Roadmap
 
