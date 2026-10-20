@@ -133,13 +133,34 @@ export default function Home() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <Link className="brand" href="/" aria-label="ResearchPilot AI home">
+      <aside className="app-sidebar" aria-label="Main navigation">
+        <Link className="brand sidebar-brand" href="/" aria-label="ResearchPilot AI home">
           <span className="brand-mark">R</span>
-          <span>ResearchPilot <span className="gradient-text">AI</span></span>
+          <span className="sidebar-brand-copy">ResearchPilot <span className="gradient-text">AI</span></span>
         </Link>
+        <div className="sidebar-caption">WORKSPACE</div>
+        <nav className="sidebar-nav">
+          <a className="sidebar-link is-active" href="#research-label"><span className="nav-icon">⌘</span><span>Research studio</span><span className="nav-active-dot" /></a>
+          <a className="sidebar-link" href="#examples-title"><span className="nav-icon">✳</span><span>Explore prompts</span><span className="nav-shortcut">↗</span></a>
+          <a className="sidebar-link" href="#research-results"><span className="nav-icon">▤</span><span>Latest report</span></a>
+        </nav>
+        <div className="sidebar-divider" />
+        <div className="sidebar-caption">YOUR RESEARCH</div>
+        <div className="sidebar-empty">
+          <span className="sidebar-empty-icon">◌</span>
+          <p>Your research library</p>
+          <span>Reports from this session will appear here.</span>
+        </div>
+        <div className="sidebar-bottom">
+          <div className="sidebar-status"><span className="status-dot" /><span><strong>Research engine</strong><small>Ready for a question</small></span></div>
+          <div className="sidebar-version"><span>RESEARCHPILOT</span><span>STUDIO · 01</span></div>
+        </div>
+      </aside>
+      <div className="app-main">
+      <header className="topbar">
+        <div className="topbar-context"><span className="topbar-context-mark">⌘</span><span><small>WORKSPACE / RESEARCH</small><strong>Research studio</strong></span></div>
         <div className="topbar-actions">
-          <span className="topbar-note">Research grounded in sources, not guesses.</span>
+          <span className="topbar-note"><span className="topbar-live-dot" /> Evidence-first AI research</span>
           <button
             type="button"
             className="theme-toggle"
@@ -208,7 +229,7 @@ export default function Home() {
         </section>
 
         {result && (
-          <section className="results" aria-live="polite" aria-labelledby="results-title">
+          <section id="research-results" className="results" aria-live="polite" aria-labelledby="results-title">
             <div className="results-heading">
               <div>
                 <span className="eyebrow">Research results</span>
@@ -298,6 +319,7 @@ export default function Home() {
           <span>Evidence first. Clear reasoning. Traceable sources.</span>
         </footer>
       </main>
+      </div>
     </div>
   );
 }
