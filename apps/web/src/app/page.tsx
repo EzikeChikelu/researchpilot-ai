@@ -77,8 +77,7 @@ export default function Home() {
     setResult(null);
     setLoading(true);
     try {
-      const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
-      const response = await fetch(`${apiBase}/api/v1/research`, {
+      const response = await fetch("/api/research", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: trimmed, depth }),
