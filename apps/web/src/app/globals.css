@@ -1431,3 +1431,55 @@ textarea { min-height: 150px; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) {
   .research-progress-spinner { animation: none; }
 }
+
+
+/* Traceable inline citations */
+.inline-citation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline: 2px;
+  padding: 1px 5px;
+  border: 1px solid rgba(154, 240, 209, .28);
+  border-radius: 6px;
+  color: #b4f5df;
+  background: rgba(66, 145, 125, .12);
+  font-size: .78em;
+  font-weight: 750;
+  line-height: 1.5;
+  text-decoration: none;
+  vertical-align: .08em;
+  white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.inline-citation:hover {
+  border-color: rgba(154, 240, 209, .7);
+  background: rgba(66, 145, 125, .22);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+.inline-citation:focus-visible {
+  outline: 3px solid rgba(154, 240, 209, .45);
+  outline-offset: 2px;
+}
+.source-card {
+  scroll-margin-top: 100px;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.source-card:target {
+  border-color: rgba(154, 240, 209, .65);
+  box-shadow: 0 0 0 3px rgba(154, 240, 209, .1), 0 12px 34px rgba(0, 0, 0, .12);
+}
+:root[data-theme="light"] .inline-citation {
+  color: #176b56;
+  border-color: #c6e5da;
+  background: #edf8f3;
+}
+:root[data-theme="light"] .inline-citation:hover {
+  border-color: #73b9a3;
+  background: #dff2eb;
+}
+:root[data-theme="light"] .source-card:target {
+  border-color: #74b9a3;
+  box-shadow: 0 0 0 3px rgba(40, 123, 101, .1), 0 12px 34px rgba(32, 55, 89, .06);
+}
