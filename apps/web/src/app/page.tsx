@@ -1,7 +1,7 @@
 
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ResearchSource = {
   title: string;
@@ -63,6 +63,14 @@ function ReportContent({ markdown }: { markdown: string }) {
 export default function Home() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [question, setQuestion] = useState("");
+  const questionInputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const textarea = questionInputRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [question]);
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("researchpilot-theme");
@@ -204,6 +212,7 @@ export default function Home() {
               <span className="prompt-editor-mode">NATURAL LANGUAGE <span>·</span> OPEN INPUT</span>
             </div>
             <textarea
+              ref={questionInputRef}
               id="research-question"
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
