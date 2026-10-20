@@ -1216,7 +1216,8 @@ textarea { min-height: 150px; font-size: 14px; }
   min-height: 160px;
   margin: 0;
   padding: 22px 19px 18px;
-  resize: vertical;
+  resize: none;
+  overflow: hidden;
   border: 0;
   border-radius: 0;
   outline: none;
