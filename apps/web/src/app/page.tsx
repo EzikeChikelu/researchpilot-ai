@@ -206,15 +206,34 @@ export default function Home() {
             placeholder="Example: What are the biggest opportunities and risks for AI adoption in African fintech?"
             aria-describedby="question-help"
           />
-          <div className="controls">
-            <label className="select-wrap">
-              Research depth
-              <select value={depth} onChange={(event) => setDepth(event.target.value)}>
-                <option value="quick">Quick scan</option>
-                <option value="standard">Standard research</option>
-                <option value="deep">Deep research</option>
-              </select>
-            </label>
+          <fieldset className="depth-picker" aria-label="Choose research depth">
+            <div className="depth-picker-heading">
+              <legend>Research depth</legend>
+              <span>Choose how far to investigate</span>
+            </div>
+            <div className="depth-options">
+              <button type="button" className={`depth-option ${depth === "quick" ? "is-selected" : ""}`} aria-pressed={depth === "quick"} onClick={() => setDepth("quick")}>
+                <span className="depth-option-top"><span className="depth-symbol" aria-hidden="true">⌁</span><span className="depth-check" aria-hidden="true">✓</span></span>
+                <span className="depth-option-name">Quick scan</span>
+                <span className="depth-option-detail">A focused overview</span>
+                <span className="depth-option-time">FASTEST</span>
+              </button>
+              <button type="button" className={`depth-option ${depth === "standard" ? "is-selected" : ""}`} aria-pressed={depth === "standard"} onClick={() => setDepth("standard")}>
+                <span className="depth-option-top"><span className="depth-symbol" aria-hidden="true">◈</span><span className="depth-check" aria-hidden="true">✓</span></span>
+                <span className="depth-option-name">Standard</span>
+                <span className="depth-option-detail">Balanced source coverage</span>
+                <span className="depth-option-time">RECOMMENDED</span>
+              </button>
+              <button type="button" className={`depth-option ${depth === "deep" ? "is-selected" : ""}`} aria-pressed={depth === "deep"} onClick={() => setDepth("deep")}>
+                <span className="depth-option-top"><span className="depth-symbol" aria-hidden="true">◎</span><span className="depth-check" aria-hidden="true">✓</span></span>
+                <span className="depth-option-name">Deep research</span>
+                <span className="depth-option-detail">More comprehensive exploration</span>
+                <span className="depth-option-time">MOST THOROUGH</span>
+              </button>
+            </div>
+          </fieldset>
+          <div className="controls controls-after-depth">
+            <span className="depth-selected-note"><span className="status-dot" aria-hidden="true" /> {depth === "quick" ? "Quick scan selected" : depth === "deep" ? "Deep research selected" : "Standard research selected"}</span>
             <button className="primary-button" onClick={startResearch} disabled={loading}>
               {loading ? "Researching and writing…" : "Start researching"} <span aria-hidden="true">↗</span>
             </button>
