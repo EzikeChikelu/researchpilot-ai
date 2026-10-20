@@ -1285,3 +1285,149 @@ textarea { min-height: 150px; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) {
   .prompt-editor { transition: none; }
 }
+
+
+/* Clear, accessible research-in-progress state */
+.research-progress {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid rgba(154, 240, 209, .22);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse 70% 90% at 0% 0%, rgba(91, 165, 143, .1), transparent 72%),
+    linear-gradient(145deg, rgba(15, 27, 37, .96), rgba(10, 17, 28, .96));
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .08), 0 1px 0 rgba(255,255,255,.025) inset;
+}
+.research-progress-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 17px;
+}
+.research-progress-spinner {
+  position: relative;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border: 2px solid rgba(154, 240, 209, .18);
+  border-top-color: #9af0d1;
+  border-right-color: #a7c8ff;
+  border-radius: 50%;
+  animation: research-progress-spin .9s linear infinite;
+}
+.research-progress-kicker {
+  margin: 0 0 5px;
+  color: #9af0d1;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .15em;
+}
+.research-progress-head h3 {
+  margin: 0;
+  color: #edf4ff;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -.035em;
+}
+.research-progress-copy {
+  max-width: 520px;
+  margin: 7px 0 0;
+  color: #9baac0;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.research-progress-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+.research-progress-step {
+  display: grid;
+  grid-template-columns: 25px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: start;
+  column-gap: 9px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(157, 177, 211, .13);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .018);
+}
+.research-progress-step > span:first-child {
+  display: grid;
+  grid-row: 1 / span 2;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 1px solid rgba(154, 240, 209, .22);
+  border-radius: 8px;
+  color: #9af0d1;
+  background: rgba(69, 151, 129, .1);
+  font-size: 8px;
+  font-weight: 800;
+}
+.research-progress-step strong {
+  display: block;
+  color: #e0e9f8;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+.research-progress-step small {
+  display: block;
+  margin-top: 4px;
+  color: #8292aa;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.research-step-symbol {
+  display: none;
+}
+.research-progress-note {
+  margin: 13px 0 0;
+  color: #78889e;
+  font-size: 9px;
+  line-height: 1.6;
+}
+@keyframes research-progress-spin {
+  to { transform: rotate(360deg); }
+}
+:root[data-theme="light"] .research-progress {
+  border-color: #d5e8e1;
+  background:
+    radial-gradient(ellipse 70% 90% at 0% 0%, rgba(91, 165, 143, .09), transparent 72%),
+    linear-gradient(145deg, #fff, #f7fbfa);
+  box-shadow: 0 12px 34px rgba(32, 55, 89, .055), 0 1px 0 #fff inset;
+}
+:root[data-theme="light"] .research-progress-head h3 { color: #1d2d44; }
+:root[data-theme="light"] .research-progress-kicker { color: #23745f; }
+:root[data-theme="light"] .research-progress-spinner {
+  border-color: #d9eae4;
+  border-top-color: #287b65;
+  border-right-color: #4777b8;
+}
+:root[data-theme="light"] .research-progress-copy { color: #60728a; }
+:root[data-theme="light"] .research-progress-step {
+  border-color: #e0e8f0;
+  background: rgba(255,255,255,.72);
+}
+:root[data-theme="light"] .research-progress-step > span:first-child {
+  color: #287b65;
+  border-color: #cfe5dc;
+  background: #eef8f4;
+}
+:root[data-theme="light"] .research-progress-step strong { color: #293d56; }
+:root[data-theme="light"] .research-progress-step small,
+:root[data-theme="light"] .research-progress-note { color: #7b8ba0; }
+@media (max-width: 600px) {
+  .research-progress { padding: 15px; }
+  .research-progress-steps { grid-template-columns: 1fr; }
+  .research-progress-step {
+    grid-template-columns: 27px minmax(0, 1fr);
+    padding: 10px;
+  }
+  .research-progress-step > span:first-child { width: 27px; height: 27px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .research-progress-spinner { animation: none; }
+}
