@@ -2,6 +2,24 @@
 
 import { useState } from "react";
 
+type ResearchSource = {
+  title: string;
+  url: string;
+  snippet: string;
+  score: number | null;
+  published_date: string | null;
+};
+
+type ResearchResult = {
+  status: string;
+  question: string;
+  depth: string;
+  source_count: number;
+  sources: ResearchSource[];
+  synthesis_status: string;
+  message: string;
+};
+
 const examples = [
   {
     icon: "◈",
@@ -28,6 +46,7 @@ export default function Home() {
   const [depth, setDepth] = useState("standard");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<ResearchResult | null>(null);
 
   async function startResearch() {
     const trimmed = question.trim();
@@ -37,6 +56,7 @@ export default function Home() {
     }
 
     setError("");
+    setResult(null);
     setLoading(true);
     try {
       const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/$/, "");
@@ -45,14 +65,14 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: trimmed, depth }),
       });
+      const payload: unknown = await response.json();
       if (!response.ok) {
-        throw new Error(response.status === 404
-          ? "The research API is not connected yet. The next milestone adds the research pipeline."
-          : `Research request failed (${response.status}). Please try again.`);
+        const detail = typeof payload === "object" && payload !== null && "detail" in payload
+          ? String(payload.detail)
+          : `Research request failed (${response.status}). Please try again.`;
+        throw new Error(detail);
       }
-      const result: unknown = await response.json();
-      setError("The API accepted the request, but the report workspace is still being built.");
-      console.info("Research request response", result);
+      setResult(payload as ResearchResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to reach the API. Check that the backend is running.");
     } finally {
@@ -103,14 +123,45 @@ export default function Home() {
               </select>
             </label>
             <button className="primary-button" onClick={startResearch} disabled={loading}>
-              {loading ? "Connecting…" : "Start researching"} <span aria-hidden="true">↗</span>
+              {loading ? "Searching sources…" : "Start researching"} <span aria-hidden="true">↗</span>
             </button>
           </div>
           <p id="question-help" className="status-note">
-            Research results will include source links so you can verify the evidence.
+            Collect source links first. AI synthesis will be added in a later milestone.
           </p>
           {error && <p className="error" role="alert">{error}</p>}
         </section>
+
+        {result && (
+          <section className="results" aria-live="polite" aria-labelledby="results-title">
+            <div className="results-heading">
+              <div>
+                <span className="eyebrow">Research results</span>
+                <h2 id="results-title">Sources for your question</h2>
+                <p>{result.question}</p>
+              </div>
+              <span className="source-count">{result.source_count} sources</span>
+            </div>
+            <p className="results-notice">{result.message}</p>
+            {result.sources.length > 0 ? (
+              <div className="source-list">
+                {result.sources.map((source) => (
+                  <article className="source-card" key={source.url}>
+                    <div className="source-meta">
+                      <span>Source</span>
+                      {source.published_date && <span>{source.published_date}</span>}
+                    </div>
+                    <h3><a href={source.url} target="_blank" rel="noreferrer">{source.title} <span aria-hidden="true">↗</span></a></h3>
+                    <p>{source.snippet || "No preview was provided by the search provider."}</p>
+                    <a className="source-link" href={source.url} target="_blank" rel="noreferrer">{new URL(source.url).hostname}</a>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="status-note">No sources were returned for this question. Try a more specific search.</p>
+            )}
+          </section>
+        )}
 
         <section aria-labelledby="examples-title">
           <div className="section-heading">
@@ -123,7 +174,7 @@ export default function Home() {
                 type="button"
                 className="example-card"
                 key={example.title}
-                onClick={() => { setQuestion(example.prompt); setError(""); }}
+                onClick={() => { setQuestion(example.prompt); setError(""); setResult(null); }}
               >
                 <span className="example-icon" aria-hidden="true">{example.icon}</span>
                 <span className="example-title">{example.title}</span>
