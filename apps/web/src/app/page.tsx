@@ -1,3 +1,4 @@
+import Link from "next/link";
 "use client";
 
 import { useState } from "react";
@@ -120,10 +121,10 @@ export default function Home() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="ResearchPilot AI home">
+        <Link className="brand" href="/" aria-label="ResearchPilot AI home">
           <span className="brand-mark">R</span>
           <span>ResearchPilot <span className="gradient-text">AI</span></span>
-        </a>
+        </Link>
         <span className="topbar-note">Research grounded in sources, not guesses.</span>
       </header>
 
