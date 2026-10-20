@@ -162,12 +162,20 @@ export default function Home() {
             Turn a question into a structured research report. Explore evidence,
             trace claims to sources, and spend less time searching and more time understanding.
           </p>
+          <div className="hero-proof" aria-label="ResearchPilot capabilities">
+            <span><i aria-hidden="true">✳</i> Web-grounded research</span>
+            <span><i aria-hidden="true">↗</i> Traceable sources</span>
+            <span><i aria-hidden="true">◷</i> Reports in minutes</span>
+          </div>
         </section>
 
         <section className="workspace" aria-labelledby="research-label">
           <div className="workspace-label">
-            <label id="research-label" htmlFor="research-question">What do you want to research?</label>
-            <span className="pill">AI research agent</span>
+            <div className="workspace-prompt-heading">
+              <span className="workspace-step">01 <span> / ASK</span></span>
+              <label id="research-label" htmlFor="research-question">What do you want to research?</label>
+            </div>
+            <span className="pill"><span className="status-dot" aria-hidden="true" /> AI research agent</span>
           </div>
           <textarea
             id="research-question"
@@ -190,9 +198,12 @@ export default function Home() {
               {loading ? "Researching and writing…" : "Start researching"} <span aria-hidden="true">↗</span>
             </button>
           </div>
-          <p id="question-help" className="status-note">
-            ResearchPilot gathers web sources and writes a cited report when an AI provider is configured.
-          </p>
+          <div className="workspace-foot">
+            <p id="question-help" className="status-note">
+              <span aria-hidden="true">⌁</span> Research grounded in web sources, with a cited report when an AI provider is configured.
+            </p>
+            <span className="character-note">{question.length}/2000</span>
+          </div>
           {error && <p className="error" role="alert">{error}</p>}
         </section>
 
@@ -260,8 +271,11 @@ export default function Home() {
 
         <section aria-labelledby="examples-title">
           <div className="section-heading">
-            <h2 id="examples-title">Start with an idea</h2>
-            <span>Choose a prompt to explore</span>
+            <div>
+              <span className="section-overline">A starting point</span>
+              <h2 id="examples-title">Good questions lead somewhere.</h2>
+            </div>
+            <span>Choose a prompt to explore <span aria-hidden="true">↘</span></span>
           </div>
           <div className="example-grid">
             {examples.map((example) => (
