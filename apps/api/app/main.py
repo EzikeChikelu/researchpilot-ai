@@ -1,4 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from __future__ import annotations
+
+import hmac
+import os
+
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.schemas import ResearchRequest
@@ -25,7 +30,7 @@ app.add_middleware(
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["Content-Type", "Authorization", "X-API-Proxy-Token"],
 )
 
 
@@ -36,8 +41,17 @@ def health_check() -> dict[str, str]:
 
 
 @app.post("/api/v1/research", tags=["research"])
-def research(request: ResearchRequest) -> dict:
+def research(
+    request: ResearchRequest,
+    x_api_proxy_token: str | None = Header(default=None, alias="X-API-Proxy-Token"),
+) -> dict:
     """Collect web sources and synthesize a cited report when an LLM is configured."""
+    # Configure API_PROXY_TOKEN in production on both services. Local development
+    # remains convenient when the variable is not set.
+    expected_token = os.getenv("API_PROXY_TOKEN")
+    if expected_token and not hmac.compare_digest(x_api_proxy_token or "", expected_token):
+        raise HTTPException(status_code=401, detail="Unauthorized API proxy request.")
+
     try:
         sources = search_web(request.question, request.depth)
     except SearchConfigurationError as exc:
