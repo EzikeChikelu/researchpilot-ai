@@ -87,6 +87,12 @@ export default function Home() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResearchResult | null>(null);
+  const resultsRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!result) return;
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [result]);
 
   async function startResearch() {
     const trimmed = question.trim();
@@ -111,6 +117,26 @@ export default function Home() {
           : `Research request failed (${response.status}). Please try again.`;
         throw new Error(detail);
       }
+
+      if (
+        typeof payload !== "object" ||
+        payload === null ||
+        !("question" in payload) ||
+        typeof payload.question !== "string" ||
+        !("sources" in payload) ||
+        !Array.isArray(payload.sources) ||
+        !("source_count" in payload) ||
+        typeof payload.source_count !== "number" ||
+        !("synthesis_status" in payload) ||
+        typeof payload.synthesis_status !== "string" ||
+        !("report_markdown" in payload) ||
+        !(typeof payload.report_markdown === "string" || payload.report_markdown === null) ||
+        !("message" in payload) ||
+        typeof payload.message !== "string"
+      ) {
+        throw new Error("The research service responded, but its result was incomplete or in an unexpected format. Please try again. If this continues, check the API deployment logs.");
+      }
+
       setResult(payload as ResearchResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to reach the API. Check that the backend is running.");
@@ -285,7 +311,7 @@ export default function Home() {
         </section>
 
         {result && (
-          <section id="research-results" className="results" aria-live="polite" aria-labelledby="results-title">
+          <section id="research-results" ref={resultsRef} className="results" aria-live="polite" aria-labelledby="results-title">
             <div className="results-heading">
               <div>
                 <span className="eyebrow">Research results</span>
