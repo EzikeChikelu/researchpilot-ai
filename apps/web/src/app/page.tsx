@@ -22,6 +22,17 @@ type ResearchResult = {
   message: string;
 };
 
+type ResearchHistoryItem = {
+  id: string;
+  question: string;
+  depth: string;
+  createdAt: string;
+  result: ResearchResult;
+};
+
+const HISTORY_STORAGE_KEY = "researchpilot-history-v1";
+const MAX_HISTORY_ITEMS = 30;
+
 const examples = [
   {
     icon: "◈",
@@ -107,6 +118,10 @@ function ReportContent({ markdown, sourceCount }: { markdown: string; sourceCoun
 export default function Home() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [question, setQuestion] = useState("");
+  const [history, setHistory] = useState<ResearchHistoryItem[]>([]);
+  const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
+  const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
   const questionInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -122,6 +137,43 @@ export default function Home() {
       setTheme(savedTheme);
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      const savedHistory = window.localStorage.getItem(HISTORY_STORAGE_KEY);
+      if (savedHistory) {
+        const parsed: unknown = JSON.parse(savedHistory);
+        if (Array.isArray(parsed)) {
+          const validItems = parsed.filter((item): item is ResearchHistoryItem =>
+            typeof item === "object" &&
+            item !== null &&
+            typeof item.id === "string" &&
+            typeof item.question === "string" &&
+            typeof item.depth === "string" &&
+            typeof item.createdAt === "string" &&
+            typeof item.result === "object" &&
+            item.result !== null &&
+            typeof item.result.question === "string" &&
+            Array.isArray(item.result.sources)
+          );
+          setHistory(validItems.slice(0, MAX_HISTORY_ITEMS));
+        }
+      }
+    } catch {
+      // Ignore malformed or unavailable browser storage; research should still work.
+    } finally {
+      setHistoryLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!historyLoaded) return;
+    try {
+      window.localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+    } catch {
+      setError("Research history could not be saved in this browser. You can still use the current report.");
+    }
+  }, [history, historyLoaded]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -181,13 +233,43 @@ export default function Home() {
         throw new Error("The research service responded, but its result was incomplete or in an unexpected format. Please try again. If this continues, check the API deployment logs.");
       }
 
-      setResult(payload as ResearchResult);
+      const completedResult = payload as ResearchResult;
+      const historyItem: ResearchHistoryItem = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        question: completedResult.question,
+        depth: completedResult.depth || depth,
+        createdAt: new Date().toISOString(),
+        result: completedResult,
+      };
+      setHistory((current) => [
+        historyItem,
+        ...current.filter((item) => item.question !== historyItem.question),
+      ].slice(0, MAX_HISTORY_ITEMS));
+      setActiveHistoryId(historyItem.id);
+      setResult(completedResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to reach the API. Check that the backend is running.");
     } finally {
       setLoading(false);
     }
   }
+
+  function openHistoryItem(item: ResearchHistoryItem) {
+    setActiveHistoryId(item.id);
+    setQuestion(item.question);
+    setDepth(item.depth);
+    setResult(item.result);
+    setError("");
+  }
+
+  function deleteHistoryItem(id: string) {
+    setHistory((current) => current.filter((item) => item.id !== id));
+    if (activeHistoryId === id) setActiveHistoryId(null);
+  }
+
+  const filteredHistory = history.filter((item) =>
+    item.question.toLowerCase().includes(historySearch.trim().toLowerCase())
+  );
 
   function downloadReport() {
     if (!result?.report_markdown) return;
@@ -223,11 +305,26 @@ export default function Home() {
           <a className="sidebar-link" href="#research-results"><span className="nav-icon">▤</span><span>Latest report</span></a>
         </nav>
         <div className="sidebar-divider" />
-        <div className="sidebar-caption">YOUR RESEARCH</div>
-        <div className="sidebar-empty">
-          <span className="sidebar-empty-icon">◌</span>
-          <p>Your research library</p>
-          <span>Reports from this session will appear here.</span>
+        <div className="sidebar-caption">YOUR RESEARCH <span className="history-count">{history.length}</span></div>
+        <div className="sidebar-history">
+          {history.length === 0 ? (
+            <div className="sidebar-empty">
+              <span className="sidebar-empty-icon">◌</span>
+              <p>Your research library</p>
+              <span>Completed research will be saved here in this browser.</span>
+            </div>
+          ) : (
+            history.slice(0, 6).map((item) => (
+              <div className={`sidebar-history-item ${activeHistoryId === item.id ? "is-current" : ""}`} key={item.id}>
+                <button type="button" className="sidebar-history-open" onClick={() => openHistoryItem(item)} title={item.question}>
+                  <span>{item.question}</span>
+                  <small>{new Date(item.createdAt).toLocaleDateString()}</small>
+                </button>
+                <button type="button" className="sidebar-history-delete" onClick={() => deleteHistoryItem(item.id)} aria-label={`Delete saved research: ${item.question}`} title="Delete saved research">×</button>
+              </div>
+            ))
+          )}
+          {history.length > 6 && <a className="sidebar-history-more" href="#research-history">View all {history.length} reports ↗</a>}
         </div>
         <div className="sidebar-bottom">
           <div className="sidebar-status"><span className="status-dot" /><span><strong>Research engine</strong><small>Ready for a question</small></span></div>
@@ -352,6 +449,56 @@ export default function Home() {
             </div>
           )}
           {error && <p className="error" role="alert">{error}</p>}
+        </section>
+
+        <section id="research-history" className="history-panel" aria-labelledby="history-title">
+          <div className="section-heading history-section-heading">
+            <div>
+              <span className="section-overline">Your library</span>
+              <h2 id="history-title">Research history</h2>
+            </div>
+            <span>{history.length} saved {history.length === 1 ? "report" : "reports"}</span>
+          </div>
+          <p className="history-privacy-note">Saved only in this browser on this device. Clearing browser storage may remove these reports.</p>
+          {history.length > 0 && (
+            <label className="history-search">
+              <span aria-hidden="true">⌕</span>
+              <input
+                type="search"
+                value={historySearch}
+                onChange={(event) => setHistorySearch(event.target.value)}
+                placeholder="Search saved questions…"
+                aria-label="Search research history"
+              />
+            </label>
+          )}
+          {history.length === 0 ? (
+            <div className="history-empty">
+              <span aria-hidden="true">◌</span>
+              <strong>Your research library starts here</strong>
+              <p>Once a research request finishes, its question, report, and sources will be saved here for quick access.</p>
+            </div>
+          ) : filteredHistory.length === 0 ? (
+            <p className="history-no-results">No saved research matches “{historySearch}”.</p>
+          ) : (
+            <div className="history-list">
+              {filteredHistory.map((item) => (
+                <article className={`history-card ${activeHistoryId === item.id ? "is-current" : ""}`} key={item.id}>
+                  <button type="button" className="history-card-open" onClick={() => openHistoryItem(item)}>
+                    <span className="history-card-meta">
+                      <span>{item.depth === "deep" ? "Deep research" : item.depth === "quick" ? "Quick scan" : "Standard research"}</span>
+                      <span>{new Date(item.createdAt).toLocaleString()}</span>
+                    </span>
+                    <strong>{item.question}</strong>
+                    <span className="history-card-summary">
+                      {item.result.source_count} sources · {item.result.report_markdown ? "Report available" : "Sources saved"}
+                    </span>
+                  </button>
+                  <button type="button" className="history-delete-button" onClick={() => deleteHistoryItem(item.id)} aria-label={`Delete saved research: ${item.question}`}>Delete</button>
+                </article>
+              ))}
+            </div>
+          )}
         </section>
 
         {result && (
