@@ -101,9 +101,11 @@ Before inviting public users:
 1. Configure `TAVILY_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, and `LLM_BASE_URL` as server-side secrets in the hosting platform.
 2. Set `API_URL` to the backend's private/internal address and keep the backend port private when using the Next.js proxy.
 3. Run API tests, web type-checking, and a production build.
-4. Add rate limiting and request quotas at the edge or API gateway before exposing the research endpoint publicly; this repository does not currently implement per-user authentication or quotas.
-5. Review provider terms, retention, privacy, and cost limits. Never promise unlimited free use.
-6. Verify citations by opening the source URLs. The current synthesis uses search excerpts rather than full-page extraction, so important claims need independent verification.
+4. The Next.js research proxy rejects malformed JSON and payloads over 16 KiB, validates question length and research depth, and fails closed in production when `API_URL` or `API_PROXY_TOKEN` is missing. These are request guardrails, not rate limiting.
+5. Configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` as server-side environment variables in Vercel to enable distributed rate limiting: 10 research requests per IP per 10-minute window. The limiter uses an atomic Redis operation, returns HTTP 429 with `Retry-After`, and fails closed if configured Redis protection is unavailable. If both variables are absent, rate limiting is disabled; do not launch publicly until they are set and tested.
+6. Configure the same private `API_PROXY_TOKEN` on the web and API services, keep the backend port private where supported, and confirm provider secrets are server-side only.
+7. Review provider terms, retention, privacy, and cost limits. Never promise unlimited free use.
+8. Verify citations by opening the source URLs. The current synthesis uses search excerpts rather than full-page extraction, so important claims need independent verification.
 
 ## Roadmap
 
