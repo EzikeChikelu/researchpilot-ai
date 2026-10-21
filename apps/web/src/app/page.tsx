@@ -525,7 +525,7 @@ export default function Home() {
                     <p>Claims use numbered citations linked to the source list below.</p>
                   </div>
                   <div className="report-actions">
-                    <button type="button" className="secondary-button" onClick={exportReportPdf}>Export PDF</button>
+                    <button type="button" className="secondary-button" onClick={exportReportPdf} title="Open print dialog and choose Save as PDF">Export PDF</button>
                     <button type="button" className="secondary-button" onClick={copyReport}>Copy report</button>
                     <button type="button" className="secondary-button" onClick={downloadReport}>Download .md</button>
                   </div>
