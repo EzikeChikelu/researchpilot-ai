@@ -107,6 +107,31 @@ function renderInlineFormatting(text: string, sourceCount: number) {
   });
 }
 
+function getRelevanceLevel(score: number): { kind: "strong" | "moderate" | "limited"; label: string } {
+  if (score >= 0.7) return { kind: "strong", label: "Strong" };
+  if (score >= 0.4) return { kind: "moderate", label: "Moderate" };
+  return { kind: "limited", label: "Limited" };
+}
+
+function getSourceType(url: string): { kind: "government" | "education" | "news" | "organization" | "website"; label: string } {
+  let hostname = "";
+  try {
+    hostname = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return { kind: "website", label: "Website" };
+  }
+
+  if (hostname.endsWith(".gov") || hostname.includes(".gov.")) return { kind: "government", label: "Government" };
+  if (hostname.endsWith(".edu") || hostname.endsWith(".ac.uk") || hostname.endsWith(".edu.ng") || hostname.includes(".edu.")) {
+    return { kind: "education", label: "Education" };
+  }
+  if (/\b(bbc|reuters|apnews|associatedpress|cnn|nytimes|theguardian|aljazeera)\./.test(hostname)) {
+    return { kind: "news", label: "News outlet" };
+  }
+  if (hostname.endsWith(".org")) return { kind: "organization", label: "Organization" };
+  return { kind: "website", label: "Website" };
+}
+
 function ReportContent({ markdown, sourceCount }: { markdown: string; sourceCount: number }) {
   return (
     <div className="report-content">
@@ -465,10 +490,11 @@ export default function Home() {
                 <span className="research-progress-spinner" aria-hidden="true" />
                 <div>
                   <p className="research-progress-kicker">RESEARCH IN PROGRESS</p>
-                  <h3>Your research is underway</h3>
-                  <p className="research-progress-copy">Keep this page open. Your sources and report will appear here as soon as the research service responds.</p>
+                  <h3>Searching sources and preparing your report</h3>
+                  <p className="research-progress-copy">ResearchPilot is waiting for the search and synthesis service to finish. Keep this page open; this indicator is indeterminate and does not claim to measure exact completion.</p>
                 </div>
               </div>
+              <div className="research-progress-track" aria-hidden="true"><span /></div>
               <div className="research-progress-steps" aria-label="Typical research workflow">
                 <div className="research-progress-step"><span>01</span><div><strong>Discover sources</strong><small>Find relevant material across the web</small></div><span className="research-step-symbol">↗</span></div>
                 <div className="research-progress-step"><span>02</span><div><strong>Analyze evidence</strong><small>Review source details and key findings</small></div><span className="research-step-symbol">⌕</span></div>
@@ -546,7 +572,7 @@ export default function Home() {
                 <div className="report-toolbar">
                   <div>
                     <span className="report-kicker">AI-generated synthesis</span>
-                    <p>Claims use numbered citations linked to the source list below.</p>
+                    <p>Use the numbered citations to jump to a source. Relevance labels reflect search matching, not a guarantee of credibility.</p>
                   </div>
                   <div className="report-actions">
                     <button type="button" className="secondary-button" onClick={exportReportPdf} title="Open print dialog and choose Save as PDF">Export PDF</button>
@@ -581,9 +607,19 @@ export default function Home() {
                       <span>Source [{index + 1}]</span>
                       {source.published_date && <span>{source.published_date}</span>}
                     </div>
-                    <h3><a href={source.url} target="_blank" rel="noreferrer">{source.title} <span aria-hidden="true">↗</span></a></h3>
+                    <div className="source-indicators" aria-label="Source indicators">
+                      <span className={`source-type-badge source-type-${getSourceType(source.url).kind}`}>{getSourceType(source.url).label}</span>
+                      {typeof source.score === "number" && Number.isFinite(source.score) ? (
+                        <span className={`relevance-badge relevance-${getRelevanceLevel(source.score).kind}`} title="Search-provider relevance estimate; this does not guarantee factual accuracy or publisher credibility.">
+                          <span aria-hidden="true">●</span> {getRelevanceLevel(source.score).label} match
+                        </span>
+                      ) : (
+                        <span className="relevance-badge relevance-unknown" title="The search provider did not return a relevance score.">Match score unavailable</span>
+                      )}
+                    </div>
+                    <h3><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title} <span aria-hidden="true">↗</span></a></h3>
                     <p>{source.snippet || "No preview was provided by the search provider."}</p>
-                    <a className="source-link" href={source.url} target="_blank" rel="noreferrer">{new URL(source.url).hostname}</a>
+                    <a className="source-link" href={source.url} target="_blank" rel="noopener noreferrer">{new URL(source.url).hostname}</a>
                   </article>
                 ))}
               </div>
