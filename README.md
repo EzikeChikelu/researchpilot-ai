@@ -101,10 +101,11 @@ Before inviting public users:
 1. Configure `TAVILY_API_KEY`, `LLM_API_KEY`, `LLM_MODEL`, and `LLM_BASE_URL` as server-side secrets in the hosting platform.
 2. Set `API_URL` to the backend's private/internal address and keep the backend port private when using the Next.js proxy.
 3. Run API tests, web type-checking, and a production build.
-4. The Next.js research proxy rejects malformed requests, caps request bodies at 16 KiB, validates question length/depth, and fails closed in production when `API_URL` or `API_PROXY_TOKEN` is missing. These are request guardrails, not rate limiting.
-5. Configure rate limiting and usage quotas at the edge (for example, Vercel Firewall/security rules or an API gateway) before sharing the service broadly; this repository does not implement per-user authentication or distributed quotas.
-6. Review provider terms, retention, privacy, and cost limits. Never promise unlimited free use.
-7. Verify citations by opening the source URLs. The current synthesis uses search excerpts rather than full-page extraction, so important claims need independent verification.
+4. The Next.js research proxy rejects malformed JSON and payloads over 16 KiB, validates question length and research depth, and fails closed in production when `API_URL` or `API_PROXY_TOKEN` is missing. These are request guardrails, not rate limiting.
+5. Configure edge rate limiting and usage quotas before sharing the service broadly. This repository does not yet implement authentication, per-user quotas, or distributed rate limiting; an in-memory limiter alone is not reliable across serverless instances.
+6. Configure the same private `API_PROXY_TOKEN` on the web and API services, keep the backend port private where supported, and confirm provider secrets are server-side only.
+7. Review provider terms, retention, privacy, and cost limits. Never promise unlimited free use.
+8. Verify citations by opening the source URLs. The current synthesis uses search excerpts rather than full-page extraction, so important claims need independent verification.
 
 ## Roadmap
 
