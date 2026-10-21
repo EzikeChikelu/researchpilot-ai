@@ -93,3 +93,33 @@ def test_synthesis_fails_cleanly_after_retryable_errors(monkeypatch: pytest.Monk
         synthesize_report("How does urban tree cover affect city heat?", SOURCE)
 
     assert client.calls == 3
+
+
+
+def test_synthesis_prompt_requires_evidence_quality_and_uncertainty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LLM_API_KEY", "test-key")
+
+    class PromptInspectingClient(FakeClient):
+        request_body: dict | None = None
+
+        def post(self, *args: object, **kwargs: object) -> httpx.Response:
+            self.request_body = kwargs.get("json")
+            return _response(
+                200,
+                {"choices": [{"message": {"content": "## Executive summary\\nEvidence is limited [1]."}}]},
+            )
+
+    client = PromptInspectingClient([])
+    monkeypatch.setattr(synthesis.httpx, "Client", lambda **kwargs: client)
+
+    report = synthesize_report("What does the evidence show?", SOURCE)
+
+    assert "Executive summary" in report
+    assert client.request_body is not None
+    system_prompt = client.request_body["messages"][0]["content"]
+    assert "Evidence quality and disagreements" in system_prompt
+    assert "Open questions or what remains uncertain" in system_prompt
+    assert "Do not present qualitative labels as statistical certainty" in system_prompt
+    assert "Never invent a source" in system_prompt
