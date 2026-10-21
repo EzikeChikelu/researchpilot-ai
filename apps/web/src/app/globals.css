@@ -1703,3 +1703,159 @@ textarea { min-height: 150px; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) {
   .history-card { transition: none; }
 }
+
+
+/* Clean, evidence-inclusive print layout for PDF export */
+@page {
+  size: A4;
+  margin: 16mm 14mm;
+}
+@media print {
+  html, body {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    color: #172033 !important;
+    background: #fff !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .results, .results * {
+    visibility: visible !important;
+  }
+  .app-shell, .app-main, main {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+  .app-sidebar, .topbar, .hero, .workspace, #research-history,
+  #examples-title, .example-grid, .footer, .report-toolbar, .report-actions,
+  .history-panel, .error, .status-note {
+    display: none !important;
+  }
+  .results {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #172033 !important;
+    background: #fff !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+  .results-heading {
+    display: block !important;
+    margin: 0 0 20px !important;
+    padding: 0 0 14px !important;
+    border-bottom: 2px solid #dbe4ee !important;
+  }
+  .results-heading .eyebrow {
+    color: #27745f !important;
+    font-size: 9pt !important;
+    letter-spacing: .12em !important;
+  }
+  .results-heading h2 {
+    margin: 6px 0 8px !important;
+    color: #132238 !important;
+    font-size: 25pt !important;
+    line-height: 1.2 !important;
+  }
+  .results-heading p {
+    color: #3b4a60 !important;
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+  }
+  .source-count {
+    display: inline-block !important;
+    margin-top: 4px !important;
+    color: #526176 !important;
+    background: #f1f5f9 !important;
+    border: 1px solid #dbe4ee !important;
+  }
+  .report-card {
+    display: block !important;
+    margin: 0 0 22px !important;
+    padding: 0 !important;
+    color: #172033 !important;
+    background: #fff !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+  .report-content {
+    color: #172033 !important;
+    font-size: 10.5pt !important;
+    line-height: 1.7 !important;
+  }
+  .report-content h2, .report-content h3, .report-content h4 {
+    color: #14263d !important;
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+  .report-content h2 { margin-top: 22px !important; font-size: 18pt !important; }
+  .report-content h3 { margin-top: 18px !important; font-size: 14pt !important; }
+  .report-content h4 { margin-top: 15px !important; font-size: 12pt !important; }
+  .report-content p, .report-list-item {
+    color: #26364c !important;
+    orphans: 3;
+    widows: 3;
+  }
+  .report-content a, .inline-citation {
+    color: #176b59 !important;
+    text-decoration: underline !important;
+  }
+  .sources-heading {
+    display: flex !important;
+    margin: 24px 0 12px !important;
+    padding: 13px 0 9px !important;
+    border-top: 2px solid #dbe4ee !important;
+    break-after: avoid-page;
+  }
+  .sources-heading .eyebrow { color: #27745f !important; }
+  .sources-heading h3 {
+    color: #14263d !important;
+    font-size: 17pt !important;
+  }
+  .source-list { display: block !important; }
+  .source-card {
+    display: block !important;
+    margin: 0 0 12px !important;
+    padding: 12px !important;
+    color: #26364c !important;
+    background: #fff !important;
+    border: 1px solid #dbe4ee !important;
+    border-radius: 5px !important;
+    box-shadow: none !important;
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+  .source-meta { color: #64748b !important; font-size: 8pt !important; }
+  .source-card h3, .source-card h3 a {
+    color: #145d4d !important;
+    font-size: 11pt !important;
+    overflow-wrap: anywhere;
+  }
+  .source-card p { color: #3b4a60 !important; font-size: 9pt !important; line-height: 1.5 !important; }
+  .source-link { color: #176b59 !important; font-size: 8pt !important; overflow-wrap: anywhere; }
+  a { color: #176b59 !important; }
+  a[href^="http"] { overflow-wrap: anywhere; }
+  .results-notice {
+    color: #26364c !important;
+    background: #f8fafc !important;
+    border: 1px solid #dbe4ee !important;
+  }
+}
