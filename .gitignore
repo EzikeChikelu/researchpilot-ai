@@ -15,12 +15,10 @@ build/
 coverage/
 
 # Local environment and secrets
-.env
-.env.*
 !.env.example
 !.env.template
 
 # Editor / OS
 .DS_Store
-.vscode/
 .idea/
+config.bat

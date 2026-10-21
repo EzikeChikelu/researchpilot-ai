@@ -123,3 +123,5 @@ def test_synthesis_prompt_requires_evidence_quality_and_uncertainty(
     assert "Open questions or what remains uncertain" in system_prompt
     assert "Do not present qualitative labels as statistical certainty" in system_prompt
     assert "Never invent a source" in system_prompt
+    assert "clean, conventional Markdown only" in system_prompt
+    assert "Do not use Markdown tables, horizontal rules, decorative separators" in system_prompt
