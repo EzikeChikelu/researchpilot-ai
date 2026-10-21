@@ -1,0 +1,33 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "feat/research-report-experience",
+    "feature/pdf-report-export",
+    "feature/research-history",
+    "feature/research-quality-upgrade",
+    "fix/clean-research-report-formatting",
+    "hardening/request-guardrails",
+    "main",
+    "origin"
+  ],
+  "parent": {
+    "feat/research-report-experience": "main",
+    "feature/pdf-report-export": "main",
+    "feature/research-history": "main",
+    "feature/research-quality-upgrade": "main",
+    "fix/clean-research-report-formatting": "main",
+    "hardening/request-guardrails": "main",
+    "main": null,
+    "origin": "main"
+  },
+  "order": [
+    "main",
+    "feat/research-report-experience",
+    "feature/pdf-report-export",
+    "feature/research-history",
+    "feature/research-quality-upgrade",
+    "fix/clean-research-report-formatting",
+    "hardening/request-guardrails",
+    "origin"
+  ]
+}
