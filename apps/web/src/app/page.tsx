@@ -55,9 +55,18 @@ const examples = [
 ];
 
 function renderInlineFormatting(text: string, sourceCount: number) {
-  const tokenPattern = /(\[\d+(?:\s*,\s*\d+)*\]|\*\*[^*]+\*\*|__[^_]+__|\*[^*\n]+\*|_[^_\n]+_|\x60[^\x60]+\x60)/g;
+  const tokenPattern = /(\[[^\]]+\]\(https?:\/\/[^\s)]+\)|\[\d+(?:\s*,\s*\d+)*\]|\*\*[^*]+\*\*|__[^_]+__|\*[^*\n]+\*|_[^_\n]+_|\x60[^\x60]+\x60)/g;
 
   return text.split(tokenPattern).map((part, partIndex) => {
+    const markdownLinkMatch = part.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+    if (markdownLinkMatch) {
+      return (
+        <a href={markdownLinkMatch[2]} target="_blank" rel="noreferrer noopener" key={partIndex}>
+          {markdownLinkMatch[1]}
+        </a>
+      );
+    }
+
     const citationMatch = part.match(/^\[(\d+(?:\s*,\s*\d+)*)\]$/);
     if (citationMatch) {
       const ids = citationMatch[1].split(",").map((value) => Number(value.trim()));
@@ -104,11 +113,26 @@ function ReportContent({ markdown, sourceCount }: { markdown: string; sourceCoun
       {markdown.split("\n").map((line, index) => {
         const trimmed = line.trim();
         if (!trimmed) return <div className="report-space" key={index} />;
-        if (trimmed.startsWith("### ")) return <h4 key={index}>{trimmed.slice(4)}</h4>;
-        if (trimmed.startsWith("## ")) return <h3 key={index}>{trimmed.slice(3)}</h3>;
-        if (trimmed.startsWith("# ")) return <h2 key={index}>{trimmed.slice(2)}</h2>;
-        if (/^[-*] /.test(trimmed)) return <p className="report-list-item" key={index}>• {renderInlineFormatting(trimmed.slice(2), sourceCount)}</p>;
-        if (/^\d+\. /.test(trimmed)) return <p className="report-list-item" key={index}>{renderInlineFormatting(trimmed, sourceCount)}</p>;
+        if (/^(---+|___+|\*\*\*+)$/.test(trimmed)) return null;
+
+        const heading = trimmed.match(/^(#{1,6})\s+(.+)$/);
+        if (heading) {
+          const level = heading[1].length;
+          const title = renderInlineFormatting(heading[2].replace(/\s+#+\s*$/, ""), sourceCount);
+          if (level <= 2) return <h2 key={index}>{title}</h2>;
+          if (level <= 4) return <h3 key={index}>{title}</h3>;
+          return <h4 key={index}>{title}</h4>;
+        }
+
+        if (/^>\s?/.test(trimmed)) {
+          return <blockquote key={index}>{renderInlineFormatting(trimmed.replace(/^>\s?/, ""), sourceCount)}</blockquote>;
+        }
+        if (/^[-*+]\s+/.test(trimmed)) {
+          return <p className="report-list-item" key={index}>• {renderInlineFormatting(trimmed.replace(/^[-*+]\s+/, ""), sourceCount)}</p>;
+        }
+        if (/^\d+[.)]\s+/.test(trimmed)) {
+          return <p className="report-list-item" key={index}>{renderInlineFormatting(trimmed, sourceCount)}</p>;
+        }
         return <p key={index}>{renderInlineFormatting(trimmed, sourceCount)}</p>;
       })}
     </div>
