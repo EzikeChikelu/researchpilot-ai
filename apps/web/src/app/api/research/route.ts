@@ -37,9 +37,9 @@ async function enforceRateLimit(request: Request) {
     );
   }
 
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  const ip = forwardedFor?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip")?.trim() ||
+  // Prefer the platform-provided client IP header; x-forwarded-for can contain a list.
+  const ip = request.headers.get("x-real-ip")?.trim() ||
+    request.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() ||
     "unknown";
   const ipHash = createHash("sha256").update(ip).digest("hex");
   const key = `researchpilot:rate-limit:${ipHash}`;
